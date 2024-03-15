@@ -20,8 +20,7 @@ TODO: change/mitigate these!
 
 # Run unit tests
 ```
-mkdir build
-cd build
-cmake .. && make
-./tests
+cmake -B build
+cmake --build build
+ctest --test-dir build
 ```
