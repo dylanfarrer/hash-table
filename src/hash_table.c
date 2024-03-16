@@ -32,14 +32,16 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
     if (load > 70) {
         ht_resize_up(ht);
     }
-
     ht_item* item = ht_new_item(key, value);
+
     int index = ht_get_hash(item->key, ht->size, 0);
     ht_item* cur_item = ht->items[index];
     int i = 1;
     while (cur_item != NULL) {
         if (cur_item != &HT_DELETED_ITEM) {
-            if (strcmp(cur_item->key, key) == 0) {
+            if (cur_item->key == NULL && cur_item->value == NULL) {
+                printf("found bad item!\n");
+            } else if (strcmp(cur_item->key, key) == 0) {
                 ht_del_item(cur_item);
                 ht->items[index] = item;
                 return;
@@ -59,7 +61,9 @@ char* ht_search(ht_hash_table* ht, const char* key) {
     int i = 1;
     while (item != NULL) {
         if (item != &HT_DELETED_ITEM) { 
-            if (strcmp(item->key, key) == 0) {
+            if (item->key == NULL && item->value == NULL) {
+                printf("found bad item!\n");
+            } else if (strcmp(item->key, key) == 0) {
                 return item->value;
             }
         }
@@ -80,7 +84,9 @@ void ht_delete(ht_hash_table* ht, const char* key) {
     int i = 1;
     while (item != NULL) {
         if (item != &HT_DELETED_ITEM) {
-            if (strcmp(item->key, key) == 0) {
+            if (item->key == NULL && item->value == NULL) {
+                printf("found bad item!\n");
+            } else if (strcmp(item->key, key) == 0) {
                 ht_del_item(item);
                 ht->items[index] = &HT_DELETED_ITEM;
                 ht->count--;
@@ -100,9 +106,7 @@ ht_hash_table* ht_new() {
 void ht_del_hash_table(ht_hash_table* ht) {
     for (int i = 0; i < ht->size; i++) {
         ht_item* item = ht->items[i];
-        if (item == &HT_DELETED_ITEM) {
-            item = NULL;
-        } else if (item != NULL) {
+        if (item != NULL && item != &HT_DELETED_ITEM) {
             ht_del_item(item);
         }
     }
@@ -139,10 +143,6 @@ static void ht_del_item(ht_item* i) {
     free(i->value);
     free(i);
 }
-
-/*
-
-*/
 
 /**
  * @brief hash a string
@@ -206,18 +206,25 @@ static void ht_resize(ht_hash_table* ht, const int base_size) {
     
     // create new, larger hash table, populate it with ht items
     ht_hash_table* new_ht = ht_new_sized(base_size);
+
     for (int i = 0; i < ht->size; i++) {
         ht_item* item = ht->items[i];
-        if (item != NULL) {
+        if (item != NULL && item != &HT_DELETED_ITEM) {
             ht_insert(new_ht, item->key, item->value);
         }
     }
 
-    // set ht meta data to new_ht values
+    // transfer ownership of all values between new_ht and ht
+    // technically, count and base_size do not need to be updated to safely
+    // delete new_ht, delete if needed in future?
+    const int tmp_base_size = ht->base_size;
     ht->base_size = new_ht->base_size;
-    ht->count = new_ht->count;
+    new_ht->base_size = tmp_base_size;
 
-    // swap ht and new_ht values
+    const int tmp_count = ht->count;
+    ht->count = new_ht->count;
+    new_ht->count = tmp_count;
+
     const int tmp_size = ht->size;
     ht->size = new_ht->size;
     new_ht->size = tmp_size;
@@ -250,3 +257,24 @@ static void ht_resize_down(ht_hash_table* ht) {
     ht_resize(ht, new_size);
 }
 
+
+
+
+/*
+
+TODO fix bug:
+
+When key population is 10000 (or above a certain number, at least 100),
+items exist in the hash table that are equal to {NULL, NULL}, but NOT equal to 
+&HT_DELETED_ITEM. which previously caused strcmp to cause a seg fault.
+
+These items are not NULL when inserted.
+
+Is it a memory issue or loss during an upward resize?
+
+Investigate
+
+Currently mitigated with if statements in insert, delete and search, but
+this should only be a temporary measure.
+
+*/
