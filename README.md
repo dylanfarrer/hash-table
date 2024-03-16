@@ -16,6 +16,8 @@ function hash(string, a, num_buckets):
 # Limitations
 - only accepts char* and ASCII
 - collisions are handled with open addressing with double hashing.
+- Handle int/long overflows correctly!
+- Hash tables of size ~ million don't have great performance
 TODO: change/mitigate these!
 
 # Run unit tests

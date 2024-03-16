@@ -152,3 +152,50 @@ TEST(HashTable, LargePutAndSearch) {
     }
     ht_del_hash_table(ht);
 }
+
+
+// ---------------------- HUGE ----------------------
+
+TEST(HashTable, HugePut) {
+    ht_hash_table* ht = ht_new();
+    char buffer[20];
+
+    for (int i = 0; i < 1000000; i++) {
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        ht_insert(ht, buffer, buffer);
+    }
+
+    ht_del_hash_table(ht);
+}
+
+TEST(HashTable, HugePutAndDelete) {
+    ht_hash_table* ht = ht_new();
+    char buffer[20];
+
+    for (int i = 0; i < 1000000; i++) {
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        ht_insert(ht, buffer, buffer);
+    }
+
+    for (int i = 0; i < 1000000; i++) {
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        ht_delete(ht, buffer);
+    }
+    ht_del_hash_table(ht);
+}
+
+TEST(HashTable, HugePutAndSearch) {
+    ht_hash_table* ht = ht_new();
+    char buffer[20];
+
+    for (int i = 0; i < 1000000; i++) {
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        ht_insert(ht, buffer, buffer);
+    }
+
+    for (int i = 0; i < 1000000; i++) {
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        ASSERT_EQ(strcmp(ht_search(ht, buffer), buffer), 0);
+    }
+    ht_del_hash_table(ht);
+}
