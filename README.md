@@ -26,3 +26,21 @@ cmake -B build
 cmake --build build
 ctest --test-dir build
 ```
+
+# Extensions:
+- more customisation? allow user to give hashing function, resize limits, collision resolution method etc
+- don't assume on memory alloc? somehow allow user to provide the allocation method
+- handle overflows and int/long stuff
+- update/improve hash function, provide multiple?
+- extend from just ascii to other stuff? Allow different types of hash maps
+- improve efficiency? How can I acheive thios?
+- utilise the preprocessor more
+- make the library platform independent?
+- provide size method
+- provide iterators?
+- abstract structs away?
+- clear the hash table method
+- header only?
+- change the name of the methods, header file
+- optionally make the hash table thread-safe?
+- improve handling of edge cases, duplicate keys, keys that don't exist, keys too big or too small etc.
